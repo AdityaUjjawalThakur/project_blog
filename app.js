@@ -37,10 +37,10 @@ function isAuthenticated(req,res,next){
 
 }
 app.get("/",(req,res)=>{
-    res.render("home")
+    res.render("home",{session})
 })
 app.get("/register",(req,res)=>{
-    res.render("register")
+    res.render("register",{session})
 })
 app.post("/register",async(req,res)=>{
     const {name,email,password}=req.body;
@@ -54,7 +54,7 @@ app.post("/register",async(req,res)=>{
     })
 })
 app.get("/login",(req,res)=>{
-    res.render("login")
+    res.render("login",{session:req.session})
 })
 app.post("/login",async(req,res)=>{
     const {email,password}=req.body;
@@ -96,7 +96,7 @@ app.get("/dashboard",isAuthenticated,async(req,res)=>{
             return res.send(err)
         }else{
            
-            return res.render("dashboard",{user,posts})
+            return res.render("dashboard",{user,posts,session:req.session})
         }
     })
         
@@ -107,7 +107,7 @@ app.get("/dashboard",isAuthenticated,async(req,res)=>{
 app.get("/post/create",(req,res)=>{
     
 
-    res.render("post");
+    res.render("post",{session:req.session});
 })
 app.post("/post/create",async(req,res)=>{
    
@@ -148,7 +148,7 @@ app.get("/post/edit/:id",isAuthenticated,(req,res)=>{
             return res.send(err);
         }else{
             const post=result[0];
-            res.render("editpost",{post})
+            res.render("editpost",{post,session:req.session})
         }
 
     })

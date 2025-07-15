@@ -6,6 +6,7 @@
     <title>Post</title>
 </head>
 <body>
+     <%- include("partials/navbar") %>
     <form action="/post/create" method="post">
     <h1>Create your post here</h1>
     <label for="title" >Title</label>
@@ -14,9 +15,7 @@
      <textarea name="content" id="content" rows="10" cols="50" required></textarea>
     <button type="submit">Submit</button>   
     </form>
-    <form action="/post/delete" method="post">
-        <button>Delete</button>
-    </form>
+   
     
 </body>
 </html>

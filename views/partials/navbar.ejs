@@ -1,0 +1,17 @@
+  <nav>
+        <a href="/">Home</a>|
+        <% if(!session.userID){ %>
+            <a href="/login">Login</a>|
+            <a href="/register">Register</a>|
+        <% } else{%>
+             <a href="/register">Register</a>|
+             <a href="/post/create">Write Blog</a>
+            <form action="/logout" method="post">
+                <button>Logout</button>
+            </form>
+        <%  }%>
+     
+        
+        
+    </nav>
+    
