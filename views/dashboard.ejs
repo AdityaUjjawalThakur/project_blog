@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+</head>
+<body>
+    <h1>Welcome, <%= user.name %> 👋</h1>
+    <p>Your email is: <%= user.email %></p>
+
+    <h2>Your Posts:</h2>
+    <form action="/post/create" method="get">
+        <button>Create</button>
+
+    </form>
+    <form action="/logout" method="post">
+        <button>Logout</button>
+
+    </form>
+
+    <% if (posts.length === 0) { %>
+        <p>You have zero posts.</p>
+    <% } else { %>
+        <% posts.forEach(post => { %>
+            <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 15px;">
+                <h3><%= post.title %></h3>
+                <p><%= post.content %></p>
+                <small>Posted on: <%= new Date(post.created_at).toLocaleString() %></small>
+                 <form action="/post/delete" method="post">
+                    <input type="hidden" name="postid" value="<%=post.id %>">
+                         <button>Delete</button>
+                </form>
+                <form action="/post/edit/<%= post.id %>" method="get">
+                    
+                         <button>Edit</button>
+                </form>
+            </div>
+        <% }) %>
+    <% } %>
+</body>
+
+</html>
