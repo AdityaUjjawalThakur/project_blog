@@ -36,8 +36,20 @@ function isAuthenticated(req,res,next){
     }
 
 }
+app.get("/test", (req, res) => {
+  res.render("test");
+});
+
 app.get("/",(req,res)=>{
-    res.render("home",{session})
+    const query="select posts.*,users.name as Author from posts join users on posts.user_id =users.id order by posts.created_at desc "
+   db.query(query,(err,result)=>{
+     if(err){
+        console.error(err);
+        return res.send("error loading the posts")
+     }
+       res.render("home",{session:req.session,posts:result})
+   })
+    
 })
 app.get("/register",(req,res)=>{
     res.render("register",{session})
@@ -104,7 +116,7 @@ app.get("/dashboard",isAuthenticated,async(req,res)=>{
     })
     
 })
-app.get("/post/create",(req,res)=>{
+app.get("/post/create",isAuthenticated,(req,res)=>{
     
 
     res.render("post",{session:req.session});
