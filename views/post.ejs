@@ -15,7 +15,7 @@
 
     <div class="card shadow-sm">
       <div class="card-body">
-        <form action="/post/create" method="post">
+        <form action="/post/create" method="post" enctype="multipart/form-data" >
           <div class="mb-3">
             <label for="title" class="form-label">Title</label>
             <input type="text" name="title" id="title" class="form-control" required />
@@ -25,6 +25,11 @@
             <label for="content" class="form-label">Content</label>
             <textarea name="content" id="content" rows="8" class="form-control" required></textarea>
           </div>
+          <div class="mb-3">
+            <label for="image">Insert Image</label>
+            <input type="file" name="image" id="image" multiple accept="image/*" class="form-control">
+          </div>
+
 
           <div class="text-end">
             <button type="submit" class="btn btn-primary">Publish</button>

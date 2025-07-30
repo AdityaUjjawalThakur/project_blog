@@ -28,6 +28,9 @@
       <form action="/post/create" method="get">
         <button class="btn btn-warning">Write Blog</button>
       </form>
+      <form action="/dashboard" method="get">
+        <button class="btn btn-warning">Dashboard</button>
+      </form>
     </div>
 
     <!-- Posts Section -->
@@ -41,8 +44,9 @@
           <div class="card-body">
             <h4 class="card-title"><%= post.title %></h4>
             <p class="card-text"><%= post.content.slice(0, 200) %>...</p>
+            <a href="/post/<%=post.id%>"class="btn btn-sm btn-outline-primary">Read more</a>
             <p class="text-muted">
-              <small>By <strong><%= post.author %></strong></small>
+              by <%= post.Author %>
             </p>
           </div>
         </div>

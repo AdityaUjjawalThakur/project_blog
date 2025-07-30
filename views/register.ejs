@@ -23,7 +23,7 @@
           <div class="card-body">
             <h2 class="text-center mb-4">📝 Register Yourself</h2>
 
-            <form action="/register" method="post">
+            <form action="/register" method="post" enctype="multipart/form-data">
               <div class="mb-3">
                 <label for="name" class="form-label">Full Name</label>
                 <input
@@ -55,6 +55,11 @@
                   class="form-control"
                   required
                 />
+              </div>
+              <div class="mb-3">
+                <label for="profile">Upload Profile Picture</label>
+                <input type="file" name="profile" id="profile" accept="image/*" class="form-control">
+
               </div>
 
               <div class="d-grid">
