@@ -1,12 +1,14 @@
+require('dotenv').config();
 const express=require('express')
 const app=express()
 const mysql=require('mysql2')
 const bcrypt=require('bcrypt')
 const session=require('express-session')
 const path=require("path")
-const PORT=3000;
+const PORT=process.env.PORT||3000;
 const multer=require("multer")
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
 
 const cloudinary=require("./config/cloudinary")
 const { json } = require('stream/consumers')
@@ -21,15 +23,13 @@ app.use(session(
     saveUninitialized: false
     }
 ))
-const db=mysql.createConnection({
-    host:'localhost',
-    user:"root",
-    password:"4nm21cs007",
-    database:"blog",
-    cookie: {
-        maxAge: 1000 * 60 * 60 * 24  // session lasts 1 day
-    }
-})
+const db = mysql.createConnection({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT
+});
 db.connect((err)=>{
     if(err) throw err
     console.log("database connected")
