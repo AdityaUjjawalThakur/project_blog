@@ -13,6 +13,7 @@ const { json } = require('stream/consumers')
 app.set('view engine','ejs')
 app.set('views',path.join(__dirname,'views'))
 app.use(express.urlencoded({extended:false}))
+app.use(express.static("public"))
 app.use(session(
     {
     secret: 'blog_secret_key',
@@ -54,9 +55,12 @@ const storage = new CloudinaryStorage({
 });
 
 const upload=multer({storage})
-
-
 app.get("/",(req,res)=>{
+    res.render("landing")
+})
+
+
+app.get("/home",(req,res)=>{
     const query="select posts.*,users.name as Author from posts join users on posts.user_id =users.id order by posts.created_at desc "
    db.query(query,(err,result)=>{
      if(err){
