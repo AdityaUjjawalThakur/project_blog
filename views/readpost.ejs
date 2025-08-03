@@ -3,13 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
+  <title><%= posts.title %></title>
+
   <link
     href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
     rel="stylesheet"
     integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr"
     crossorigin="anonymous"
   />
+  <link rel="stylesheet" href="/css/style.css">
+  
+  
 </head>
 <body>
 
@@ -18,25 +22,25 @@
 
   <!-- Main Content -->
   <div class="container mt-5">
-    
     <% if (posts) { %>
-  <div class="card shadow-lg p-4">
-    <h1 class="mb-3 text-primary"><%= posts.title %></h1>
-    <p class="text-muted mb-1">By <strong><%= posts.Author %></strong></p>
-    <p class="text-muted"><small>Posted on: <%= new Date(posts.created_at).toLocaleString() %></small></p>
-    <hr />
+      <div class="card shadow p-4">
+        <h1 class="mb-3 text-primary fw-bold"><%= posts.title %></h1>
+        <p class="text-muted mb-1">By <strong><%= posts.Author %></strong></p>
+        <p class="text-muted"><small>Posted on: <%= new Date(posts.created_at).toLocaleString() %></small></p>
+        <hr />
 
-    <% if (posts.image_url && posts.image_url.length) { %>
-      <% posts.image_url.forEach(url => { %>
-        <img src="<%= url %>" alt="Post Image" class="img-fluid rounded shadow mb-3" style="max-height: 300px;">
-      <% }) %>
+        <% if (posts.image_url && posts.image_url.length) { %>
+          <% posts.image_url.forEach(url => { %>
+            <img src="<%= url %>" alt="Post Image" class="post-image">
+          <% }) %>
+        <% } %>
+
+        <p class="fs-5 lh-lg mt-4"><%= posts.content %></p>
+      </div>
+    <% } else { %>
+      <div class="alert alert-warning text-center">No post found</div>
     <% } %>
-
-    <p class="fs-5 lh-lg"><%= posts.content %></p>
   </div>
-<% } else { %>
-  <div class="alert alert-warning text-center">No post found</div>
-<% } %>
 
 </body>
 </html>

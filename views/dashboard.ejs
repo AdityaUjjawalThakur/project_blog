@@ -11,27 +11,36 @@
   <%- include("partials/navbar") %>
 
   <div class="container mt-5">
-    <div class="text-center mb-5">
+    <div class="text-center mb-4">
       <h1 class="fw-bold">Welcome, <%= user.name %> 👋</h1>
       <p class="text-muted">Your email is: <%= user.email %></p>
+
+      <% if (user && user.profile_img) { %>
+        <div class="d-flex justify-content-center mt-3">
+          <img 
+            src="<%= user.profile_img %>" 
+            alt="Profile Image" 
+            class="rounded-circle shadow" 
+            style="width: 150px; height: 150px; object-fit: cover;"
+          />
+        </div>
+      <% } else { %>
+        <p class="text-muted mt-3">No profile picture uploaded.</p>
+      <% } %>
     </div>
-    <% if (user && user.profile_img) { %>
-  <img src="<%= user.profile_img %>" alt="Profile" style="height: 40px; border-radius: 50%;" />
-<% } %>
 
-
-    <div class="d-flex justify-content-center gap-3 mb-4">
+    <div class="d-flex justify-content-center gap-3 mb-4 flex-wrap">
       <form action="/post/create" method="get">
         <button class="btn btn-primary">Create New Post</button>
       </form>
       <form action="/logout" method="post">
         <button class="btn btn-danger">Logout</button>
       </form>
-       <% if(session.isAdmin){ %>
+      <% if(session.isAdmin){ %>
         <form action="/admin/post" method="get">
-        <button class="btn btn-danger">Admin Dashboard</button>
-      </form>
-       <%  }%>
+          <button class="btn btn-warning">Admin Dashboard</button>
+        </form>
+      <% } %>
     </div>
 
     <hr />
@@ -47,10 +56,10 @@
             <div class="card mb-4 shadow-sm">
               <div class="card-body">
                 <h4 class="card-title"><%= post.title %></h4>
-                <p class="card-text"><%= post.content %></p>
+                <p class="card-text text-truncate" style="max-height: 150px; overflow: hidden;"><%= post.content %></p>
                 <small class="text-muted">Posted on: <%= new Date(post.created_at).toLocaleString() %></small>
                 
-                <div class="d-flex justify-content-end gap-2 mt-3">
+                <div class="d-flex justify-content-end gap-2 mt-3 flex-wrap">
                   <form action="/post/delete" method="post">
                     <input type="hidden" name="postid" value="<%= post.id %>">
                     <button class="btn btn-outline-danger btn-sm">Delete</button>
@@ -59,7 +68,7 @@
                     <button class="btn btn-outline-primary btn-sm">Edit</button>
                   </form>
                   <form action="/post/<%= post.id%>" method="get">
-                    <button class="btn btn-outline-primary btn-sm">Read more</button>
+                    <button class="btn btn-outline-success btn-sm">Read More</button>
                   </form>
                 </div>
               </div>
