@@ -27,6 +27,11 @@
       <form action="/logout" method="post">
         <button class="btn btn-danger">Logout</button>
       </form>
+       <% if(session.isAdmin){ %>
+        <form action="/admin/post" method="get">
+        <button class="btn btn-danger">Admin Dashboard</button>
+      </form>
+       <%  }%>
     </div>
 
     <hr />

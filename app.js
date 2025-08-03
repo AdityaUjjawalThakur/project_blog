@@ -24,11 +24,11 @@ app.use(session(
     }
 ))
 const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT
+  host: "localhost",
+  user: "root",
+  password:"4nm21cs007",
+  database:"blog",
+  
 });
 db.connect((err)=>{
     if(err) throw err
@@ -40,6 +40,17 @@ function isAuthenticated(req,res,next){
     }else{
         res.redirect("/login");
     }
+
+}
+//middleware to check if user is Admin
+function isAdmin(req,res,next){
+    if(req.session && req.session.isAdmin){
+        next();
+    }else{
+         return res.status(403).send("Admin Only")
+
+    }
+   
 
 }
 const storage = new CloudinaryStorage({
@@ -194,24 +205,39 @@ app.post("/login",async(req,res)=>{
     db.query('select *from users where email=?',[email],async(err,result)=>{
         if(err){
         console.error(err);
-        res.send(err);
+         return res.send(err);
             
         }else{
             if(result.length==0){
                 return res.send("NO RECORD FOUND");
             }else{
                 const user=result[0];
+                
                 const isMatched=await bcrypt.compare(password,user.password);
                 if(!isMatched){
                     return res.redirect("/login");
                 }
                 req.session.userID=user.id;
-                return res.redirect("/dashboard")
+                req.session.userName=user.name;
+                req.session.isAdmin=user.is_admin;
+                console.log(req.session.isAdmin)
+               if (req.session.isAdmin) {
+                     return res.redirect("/admin/post");
+                    }else{
+                        return res.redirect("/dashboard");
+
+                    }
+                   
+
+
+                
+               
             }
         }
     })
 
 })
+
 app.get("/dashboard",isAuthenticated,async(req,res)=>{
     const userid=req.session.userID;
     db.query("select * from users where id=?",[userid],async(err,result)=>{
@@ -277,13 +303,21 @@ app.post("/post/delete",(req,res)=>{
 app.get("/post/edit/:id",isAuthenticated,(req,res)=>{
     const postid=req.params.id;
     const userid=req.session.userID;
-    db.query("select * from posts where id=? and user_id=?",[postid,userid],(err,result)=>{
+    const value=req.session.isAdmin?[postid]:[postid,userid]
+    const query=req.session.isAdmin?"select * from posts where id=?":"select * from posts where id =? and user_id=?";
+    db.query(query,value,(err,result)=>{
         if(err){
             console.error(err);
             return res.send(err);
         }else{
             const post=result[0];
-            post.image_url=JSON.parse(post.image_url)
+            // Safely parse image_url
+    try {
+      post.image_url = post.image_url ? JSON.parse(post.image_url) : [];
+    } catch (e) {
+      post.image_url = [];
+    }
+            
             res.render("editpost",{post,session:req.session})
         }
 
@@ -383,6 +417,15 @@ app.get("/post/:id",(req,res)=>{
 
     
     
+})
+app.get("/admin/post",isAuthenticated,isAdmin,async(req,res)=>{
+    db.query("select posts.* ,users.name as Author from posts join users on posts.user_id =users.id order by posts.created_at desc",(err,result)=>{
+        if(err){
+            return res.send(err)
+        }
+        // console.log(result[0])
+       return  res.render("admindashboard",{posts:result,session:req.session})
+    })
 })
 app.listen(PORT,(req,res)=>{
     console.log(`you are live at ${PORT}`)
