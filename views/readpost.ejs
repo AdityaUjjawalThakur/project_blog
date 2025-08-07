@@ -18,29 +18,60 @@
 <body>
 
   <!-- Navbar -->
-  <%- include("partials/navbar") %>
+<%-include("partials/navbar") %>
 
-  <!-- Main Content -->
-  <div class="container mt-5">
-    <% if (posts) { %>
-      <div class="card shadow p-4">
-        <h1 class="mb-3 text-primary fw-bold"><%= posts.title %></h1>
-        <p class="text-muted mb-1">By <strong><%= posts.Author %></strong></p>
-        <p class="text-muted"><small>Posted on: <%= new Date(posts.created_at).toLocaleString() %></small></p>
-        <hr />
+<!-- Main Content -->
+<div class="container mt-5">
+  <% if (posts) { %>
+    <div class="card shadow p-4">
+      <h1 class="mb-3 text-primary fw-bold"><%= posts.title %></h1>
+      <p class="text-muted mb-1">By <strong><%= posts.Author %></strong></p>
+      <p class="text-muted"><small>Posted on: <%= new Date(posts.created_at).toLocaleString() %></small></p>
+      <hr />
 
-        <% if (posts.image_url && posts.image_url.length) { %>
+      <% if (posts.image_url && posts.image_url.length) { %>
+        <div class="mb-4">
           <% posts.image_url.forEach(url => { %>
-            <img src="<%= url %>" alt="Post Image" class="post-image">
+            <img src="<%= url %>" alt="Post Image" class="img-fluid rounded mb-2 shadow-sm">
           <% }) %>
-        <% } %>
+        </div>
+      <% } %>
 
-        <p class="fs-5 lh-lg mt-4"><%= posts.content %></p>
-      </div>
-    <% } else { %>
-      <div class="alert alert-warning text-center">No post found</div>
-    <% } %>
-  </div>
+      <p class="fs-5 lh-lg mt-4"><%= posts.content %></p>
+
+      <h3 class="mt-5">Comments</h3>
+
+      <% if (comments.length === 0) { %>
+        <p class="text-muted">No Comments Yet. Be the first to comment!</p>
+      <% } else { %>
+        <ul class="list-group mb-4">
+          <% comments.forEach(comment => { %>
+            <li class="list-group-item">
+              <p class="mb-1">
+                <strong><%= comment.commenter_name %></strong> 
+                <span class="text-muted float-end"><%= new Date(comment.created_at).toLocaleString() %></span>
+              </p>
+              <p class="mb-0"><%= comment.content %></p>
+            </li>
+          <% }) %>
+        </ul>
+      <% } %>
+
+      <!-- Comment Form -->
+      <h4 class="mt-4">Leave a Comment</h4>
+      <form action="/comment/<%= posts.id %>" method="post" class="mt-3">
+        <div class="mb-3">
+          <label for="comment" class="form-label">Your Comment</label>
+          <textarea name="comment" id="comment" class="form-control" rows="3" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Post Comment</button>
+      </form>
+    </div>
+  <% } else { %>
+    <div class="alert alert-warning text-center">No post found</div>
+  <% } %>
+</div>
+
 
 </body>
 </html>

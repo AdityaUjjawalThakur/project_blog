@@ -407,7 +407,22 @@ app.get("/post/:id",(req,res)=>{
     }catch(e){
         post.image_url=[];
     }
-    return res.render("readpost",{posts:post,session:req.session})
+  
+   const commentQuery = `
+            SELECT comments.content, comments.created_at, users.name AS commenter_name 
+            FROM comments 
+            JOIN users ON comments.user_id = users.id 
+            WHERE comments.post_id = ? 
+            ORDER BY comments.created_at DESC`;
+
+        db.query(commentQuery, [postid], (err, comments) => {
+            if (err) {
+                return res.status(500).send("Error loading comments.");
+            }
+             res.render("readpost", {
+                posts: post,
+                comments: comments,
+               session:req.session
     
     
        
@@ -418,6 +433,8 @@ app.get("/post/:id",(req,res)=>{
     
     
 })
+})
+})
 app.get("/admin/post",isAuthenticated,isAdmin,async(req,res)=>{
     db.query("select posts.* ,users.name as Author from posts join users on posts.user_id =users.id order by posts.created_at desc",(err,result)=>{
         if(err){
@@ -427,6 +444,25 @@ app.get("/admin/post",isAuthenticated,isAdmin,async(req,res)=>{
        return  res.render("admindashboard",{posts:result,session:req.session})
     })
 })
+app.post("/comment/:postid",async (req,res)=>{
+    const postId=req.params.postid;
+    const userId=req.session.userID;
+    const commentContent=req.body.comment;
+    if(!userId){
+        return res.status(401).send("You Must Be Logged In To Comment")
+
+    }
+    const query="Insert into comments(post_id,user_id,content)values (?,?,?)"
+    db.query(query,[postId,userId,commentContent],(err,result)=>{
+        if(err){
+            return res.status(500).send("Server Error")
+        }
+        res.redirect(`/post/${postId}`)
+    
+   
+})
+})
+
 app.listen(PORT,(req,res)=>{
     console.log(`you are live at ${PORT}`)
 })
