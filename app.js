@@ -53,6 +53,10 @@ function isAdmin(req,res,next){
    
 
 }
+app.use((req, res, next) => {
+  console.log("Request received:", req.method, req.url);
+  next();
+});
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
  params: async (req, file) => {
@@ -409,7 +413,7 @@ app.get("/post/:id",(req,res)=>{
     }
   
    const commentQuery = `
-            SELECT comments.content, comments.created_at, users.name AS commenter_name 
+            SELECT comments.user_id as usercommentid,comments.id as commentid, comments.content, comments.created_at, users.name AS commenter_name 
             FROM comments 
             JOIN users ON comments.user_id = users.id 
             WHERE comments.post_id = ? 
@@ -462,6 +466,20 @@ app.post("/comment/:postid",async (req,res)=>{
    
 })
 })
+app.post("/deletecomment/:commentid/:postid",async(req,res)=>{
+    const commentId=req.params.commentid;
+    
+    console.log(`this is the comment id${commentId}`)
+    const userId=req.session.userID;
+    const query="delete from comments where id=? and user_id=?";
+    db.query(query,[commentId,userId],(err,result)=>{
+        if(err){
+            return res.status(500).send("error deleting comment");
+        }
+        return res.redirect(`/post/${req.params.postid}`)
+    })
+})
+
 
 app.listen(PORT,(req,res)=>{
     console.log(`you are live at ${PORT}`)

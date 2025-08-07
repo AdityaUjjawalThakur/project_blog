@@ -52,8 +52,18 @@
                 <span class="text-muted float-end"><%= new Date(comment.created_at).toLocaleString() %></span>
               </p>
               <p class="mb-0"><%= comment.content %></p>
+              <% if(comment.usercommentid===session.userID){ %>
+                 <form action="/deletecomment/<%=comment.commentid %>/<%=posts.id %>" method="post">
+                 
+                <button type="submit">Delete</button>
+              </form>
+                <% } %>
+          
+               
+              
             </li>
           <% }) %>
+
         </ul>
       <% } %>
 
