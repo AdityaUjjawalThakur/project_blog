@@ -34,6 +34,16 @@ db.connect((err)=>{
     if(err) throw err
     console.log("database connected")
 })
+// Converts db.query into a Promise so you can use async/await
+function queryPromise(sql, params = []) {
+    return new Promise((resolve, reject) => {
+        db.query(sql, params, (err, results) => {
+            if (err) return reject(err);
+            resolve(results);
+        });
+    });
+}
+
 function isAuthenticated(req,res,next){
     if(req.session.userID){
         next();
@@ -242,31 +252,57 @@ app.post("/login",async(req,res)=>{
 
 })
 
-app.get("/dashboard",isAuthenticated,async(req,res)=>{
-    const userid=req.session.userID;
-    db.query("select * from users where id=?",[userid],async(err,result)=>{
-        if(err){
-            console.error(err);
-            return res.send(err);
-        }
-            const user=result[0];
+app.get("/dashboard", isAuthenticated, async (req, res) => {
+    try {
+        const userId = req.session.userID;
 
-        
-        
-        db.query("select *from posts where user_id=?",[userid],async(err,posts)=>{
-        if(err){
-            console.error(err)
-            return res.send(err)
-        }else{
-           
-            return res.render("dashboard",{user,posts,session:req.session})
-        }
-    })
-        
+        // 1. Get user
+        const userResult = await queryPromise("SELECT * FROM users WHERE id = ?", [userId]);
+        const user = userResult[0];
 
-    })
-    
-})
+        // 2. Get user's posts
+        const posts = await queryPromise("SELECT * FROM posts WHERE user_id = ?", [userId]);
+
+        // 3. Add like/dislike counts to each post
+        let totallikes=0;
+        let totaldislikes=0;
+        const postsWithReactions = await Promise.all(
+            posts.map(async (post) => {
+                const [likeResult] = await queryPromise(
+                    "SELECT COUNT(*) AS likes FROM post_reactions WHERE post_id = ? AND reaction = 'like'",
+                    [post.id]
+                );
+                const [dislikeResult] = await queryPromise(
+                    "SELECT COUNT(*) AS dislikes FROM post_reactions WHERE post_id = ? AND reaction = 'dislike'",
+                    [post.id]
+                );
+                totallikes+=likeResult.likes;
+                totaldislikes+=dislikeResult.dislikes;
+
+                return {
+                    ...post,
+                    likes: likeResult.likes,
+                    dislikes: dislikeResult.dislikes,
+                };
+            })
+        );
+        console.log(totaldislikes)
+
+        // 4. Render dashboard
+        res.render("dashboard", {
+            user,
+            posts: postsWithReactions,
+            session: req.session,
+            totallikes,
+            totaldislikes
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Something went wrong while loading dashboard.");
+    }
+});
+
 app.get("/post/create",isAuthenticated,(req,res)=>{
     
 
@@ -274,7 +310,10 @@ app.get("/post/create",isAuthenticated,(req,res)=>{
 })
 app.post("/post/create",upload.array("image",5),async(req,res)=>{
    
+   
+   
     const {title,content}=req.body;
+     console.log("Submitted content:", content);
     const userid=req.session.userID;
     const imageUrl= req.files.map(file=>file.path);
     const jsonimageUrls=JSON.stringify(imageUrl);
@@ -396,49 +435,80 @@ app.post("/logout",(req,res)=>{
     })
     res.redirect("/")
 })
-app.get("/post/:id",(req,res)=>{
-    const postid=req.params.id;
-    const query="select posts.*, users.name as Author from posts join users on posts.user_id=users.id where posts.id=?"
-    db.query(query,[postid],(err,result)=>{
-        if(err){
-            console.error(err)
-            return res.send(err);
-        }
-         const post=result[0];
-    try{
-         post.image_url=JSON.parse(post.image_url)
+app.get("/post/:id", (req, res) => {
+    const postid = req.params.id;
 
-    }catch(e){
-        post.image_url=[];
-    }
-  
-   const commentQuery = `
-            SELECT comments.user_id as usercommentid,comments.id as commentid, comments.content, comments.created_at, users.name AS commenter_name 
+    const postQuery = `
+        SELECT posts.*, users.name AS Author 
+        FROM posts 
+        JOIN users ON posts.user_id = users.id 
+        WHERE posts.id = ?
+    `;
+
+    db.query(postQuery, [postid], (err, postResult) => {
+        if (err || postResult.length === 0) {
+            console.error(err);
+            return res.status(500).send("Error loading post.");
+        }
+
+        const post = postResult[0];
+
+        try {
+            post.image_url = JSON.parse(post.image_url);
+        } catch (e) {
+            post.image_url = [];
+        }
+
+        const commentQuery = `
+            SELECT comments.user_id AS usercommentid, comments.id AS commentid,
+                   comments.content, comments.created_at, users.name AS commenter_name 
             FROM comments 
             JOIN users ON comments.user_id = users.id 
             WHERE comments.post_id = ? 
-            ORDER BY comments.created_at DESC`;
+            ORDER BY comments.created_at DESC
+        `;
 
-        db.query(commentQuery, [postid], (err, comments) => {
+        db.query(commentQuery, [postid], (err, commentResult) => {
             if (err) {
                 return res.status(500).send("Error loading comments.");
             }
-             res.render("readpost", {
-                posts: post,
-                comments: comments,
-               session:req.session
-    
-    
-       
-    })
-    
-   
 
-    
-    
-})
-})
-})
+            const likesQuery = `
+                SELECT COUNT(*) AS total_likes 
+                FROM post_reactions 
+                WHERE post_id = ? AND reaction = 'like'
+            `;
+
+            db.query(likesQuery, [postid], (err, likesResult) => {
+                if (err) {
+                    return res.status(500).send("Error loading likes.");
+                }
+
+                const dislikesQuery = `
+                    SELECT COUNT(*) AS total_dislikes 
+                    FROM post_reactions 
+                    WHERE post_id = ? AND reaction = 'dislike'
+                `;
+
+                db.query(dislikesQuery, [postid], (err, dislikesResult) => {
+                    if (err) {
+                        return res.status(500).send("Error loading dislikes.");
+                    }
+
+                   
+                    res.render("readpost", {
+                        posts:post,
+                        comments: commentResult,
+                        likes: likesResult[0].total_likes,
+                        dislikes: dislikesResult[0].total_dislikes,
+                        session:req.session
+                    });
+                });
+            });
+        });
+    });
+});
+
 app.get("/admin/post",isAuthenticated,isAdmin,async(req,res)=>{
     db.query("select posts.* ,users.name as Author from posts join users on posts.user_id =users.id order by posts.created_at desc",(err,result)=>{
         if(err){
@@ -471,14 +541,44 @@ app.post("/deletecomment/:commentid/:postid",async(req,res)=>{
     
     console.log(`this is the comment id${commentId}`)
     const userId=req.session.userID;
-    const query="delete from comments where id=? and user_id=?";
-    db.query(query,[commentId,userId],(err,result)=>{
+    const query="delete from comments where id=? ";
+    db.query(query,[commentId],(err,result)=>{
         if(err){
             return res.status(500).send("error deleting comment");
         }
         return res.redirect(`/post/${req.params.postid}`)
     })
 })
+app.get("/editcomment/:commentid/:postid",async(req,res)=>{
+    const commentid=req.params.commentid;
+    const postid=req.params.postid;
+    const query=""
+      res.send("editcomment",)
+})
+app.post("/react/:postid", async (req, res) => {
+    console.log("Router got hit")
+    const postId = req.params.postid;
+    const userId = req.session.userID;
+    const reaction = req.body.reaction;
+    console.log(postId)
+    console.log(userId)
+    console.log(reaction)
+
+    const query = `
+        INSERT INTO post_reactions (user_id, post_id, reaction)
+        VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE reaction = VALUES(reaction)
+    `;
+
+    db.query(query, [userId, postId, reaction], (err, result) => {
+        if (err) {
+            console.error("DB Error:", err);
+            return res.status(500).send("Failed to record reaction.");
+        }
+        res.redirect(`/post/${postId}`);
+    });
+});
+
 
 
 app.listen(PORT,(req,res)=>{

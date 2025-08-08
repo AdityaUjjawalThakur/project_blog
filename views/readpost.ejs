@@ -5,20 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title><%= posts.title %></title>
 
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-    integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr"
-    crossorigin="anonymous"
-  />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
-  
-  
 </head>
 <body>
 
-  <!-- Navbar -->
-<%-include("partials/navbar") %>
+<!-- Navbar -->
+<%- include("partials/navbar") %>
 
 <!-- Main Content -->
 <div class="container mt-5">
@@ -29,41 +22,56 @@
       <p class="text-muted"><small>Posted on: <%= new Date(posts.created_at).toLocaleString() %></small></p>
       <hr />
 
+      <!-- Post Images -->
       <% if (posts.image_url && posts.image_url.length) { %>
         <div class="mb-4">
           <% posts.image_url.forEach(url => { %>
-            <img src="<%= url %>" alt="Post Image" class="img-fluid rounded mb-2 shadow-sm">
+            <img src="<%= url %>" alt="Post Image" class="img-fluid rounded mb-3 shadow-sm w-100">
           <% }) %>
         </div>
       <% } %>
 
-      <p class="fs-5 lh-lg mt-4"><%= posts.content %></p>
+      <!-- Post Content -->
+      <p class="fs-5 lh-lg"><%- posts.content %></p>
 
+      <!-- Reaction Buttons -->
+      <div class="d-flex gap-3 my-4">
+        <form action="/react/<%= posts.id %>" method="post">
+          <input type="hidden" name="reaction" value="like">
+          <button type="submit" class="btn btn-outline-success">
+            👍 Like (<%= likes %>)
+          </button>
+        </form>
+
+        <form action="/react/<%= posts.id %>" method="post">
+          <input type="hidden" name="reaction" value="dislike">
+          <button type="submit" class="btn btn-outline-danger">
+            👎 Dislike (<%= dislikes %>)
+          </button>
+        </form>
+      </div>
+
+      <!-- Comments Section -->
       <h3 class="mt-5">Comments</h3>
-
       <% if (comments.length === 0) { %>
-        <p class="text-muted">No Comments Yet. Be the first to comment!</p>
+        <p class="text-muted">No comments yet. Be the first to comment!</p>
       <% } else { %>
         <ul class="list-group mb-4">
           <% comments.forEach(comment => { %>
             <li class="list-group-item">
-              <p class="mb-1">
-                <strong><%= comment.commenter_name %></strong> 
-                <span class="text-muted float-end"><%= new Date(comment.created_at).toLocaleString() %></span>
-              </p>
-              <p class="mb-0"><%= comment.content %></p>
-              <% if(comment.usercommentid===session.userID){ %>
-                 <form action="/deletecomment/<%=comment.commentid %>/<%=posts.id %>" method="post">
-                 
-                <button type="submit">Delete</button>
-              </form>
-                <% } %>
-          
-               
-              
+              <div class="d-flex justify-content-between align-items-center">
+                <strong><%= comment.commenter_name %></strong>
+                <small class="text-muted"><%= new Date(comment.created_at).toLocaleString() %></small>
+              </div>
+              <p class="mb-1"><%= comment.content %></p>
+
+              <% if (comment.usercommentid === session.userID|| session.isAdmin) { %>
+                <form action="/deletecomment/<%= comment.commentid %>/<%= posts.id %>" method="post" class="d-inline">
+                  <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                </form>
+              <% } %>
             </li>
           <% }) %>
-
         </ul>
       <% } %>
 
@@ -81,7 +89,6 @@
     <div class="alert alert-warning text-center">No post found</div>
   <% } %>
 </div>
-
 
 </body>
 </html>

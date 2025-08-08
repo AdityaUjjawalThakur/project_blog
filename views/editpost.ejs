@@ -7,7 +7,8 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
 </head>
 <body>
-  <%-include("partials/navbar") %>
+  <%- include("partials/navbar") %>
+
   <div class="container mt-5">
     <h2 class="text-center mb-4">📝 Edit Your Blog Post</h2>
 
@@ -34,19 +35,33 @@
           rows="8"
           class="form-control"
           required
-        ><%= post.content %></textarea>
-        <%if(post.image_url){%>
-          <% post.image_url.forEach((url)=>{%>
-             <img src="<%=url%>" alt="">
-             <input type="checkbox" name="removeimage" value="<%=url%>" id=""> Remove
-        <%  }) %>
-          <% } %>
+        ><%= post.content.replace(/<\/?[^>]+(>|$)/g, "") %></textarea>
+      </div>
+
+      <% if (post.image_url && post.image_url.length > 0) { %>
+        <div class="mb-3">
+          <label class="form-label">Existing Images</label>
+          <div class="d-flex flex-wrap gap-3">
+            <% post.image_url.forEach((url) => { %>
+              <div>
+                <img src="<%= url %>" alt="Post Image" style="height: 100px; object-fit: cover;">
+                <div>
+                  <input type="checkbox" name="removeimage" value="<%= url %>"> Remove
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        </div>
+      <% } %>
+
+      <div class="mb-3">
+        <label for="editimage" class="form-label">Add More Images</label>
+        <input type="file" name="editimage" id="editimage" multiple accept="image/*" class="form-control">
       </div>
 
       <div class="text-end">
         <button type="submit" class="btn btn-primary">Update Post</button>
         <a href="/dashboard" class="btn btn-secondary">Cancel</a>
-        <input type="file" name="editimage" id="editimage" multiple accept="image/*" class="form-control">
       </div>
     </form>
   </div>
