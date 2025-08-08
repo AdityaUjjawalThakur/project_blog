@@ -1,12 +1,15 @@
-# project_blog version 1.1
+# project_blog version 1.2
  Features
 
   User Features
 - Register and login securely with hashed passwords (using `bcrypt`).
 - Upload a profile picture while registering.
-- Create, read, edit, and delete your own blog posts.
+- Create, read, edit, and delete your own blog posts .
 - Upload multiple images per post (stored on Cloudinary).
-- View your personal dashboard with all your posts.
+
+- user can comment on posts
+- user can react on post by liking and disliking the post
+- View your personal dashboard with all your posts and analytics about reaction on all posts total likes or dislike
 
  Admin Features
 - Admin can access a dedicated admin dashboard.
@@ -24,4 +27,5 @@ frontend-HTML,Javascript,Ejs Templating
 database=My sql(deployed on railway)
 image upload=Mutler,cloudinary 
 deployment=Railway
+
 
